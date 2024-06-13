@@ -20,17 +20,10 @@ export declare class ObsService {
         ok: boolean;
         message: string;
         id: number;
-        image?: undefined;
-    } | {
-        ok: boolean;
-        message: string;
-        image: string;
-        id?: undefined;
     } | {
         ok: boolean;
         message: string;
         id?: undefined;
-        image?: undefined;
     }>;
     getEstadistics(usuarioLogueado: Usuario): Promise<{
         messageId: string;

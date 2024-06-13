@@ -41,22 +41,11 @@ let ObsService = class ObsService {
     }
     async startOBS(sesion, usuarioLogueado) {
         try {
-            let image;
             await this.obs.connect({
                 address: `${this.host}:${this.port}`,
                 password: this.password,
             });
-            console.log('Conectado a OBS WebSocket');
             await this.obs.send('StartRecording');
-            const response = await this.obs.send('TakeSourceScreenshot', {
-                sourceName: 'youtube_live',
-                embedPictureFormat: 'png',
-                width: 1920,
-                height: 1080,
-            });
-            const base64Image = response.img;
-            this.base64ToImage(base64Image, `id-${sesion.id}.png`);
-            image = base64Image;
             if (usuarioLogueado) {
                 const usuario = await this.usuariosRepo.findOne({
                     where: { id: usuarioLogueado.id },
@@ -85,7 +74,6 @@ let ObsService = class ObsService {
                 return {
                     ok: true,
                     message: 'Grabación iniciada correctamente',
-                    image,
                 };
             }
         }
