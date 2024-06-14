@@ -19,4 +19,6 @@ export declare class ObsController {
         message: string;
     }>;
     finalizarOBS(req: any, id: number, res: Response): Promise<Response<any, Record<string, any>>>;
+    changeRecordName(id: number, res: Response): Promise<Response<any, Record<string, any>>>;
+    stopRecording(res: Response): Promise<Response<any, Record<string, any>>>;
 }

@@ -82,8 +82,18 @@ let PubSubObjService = class PubSubObjService {
         this.pubSubService.subscribe('startRecordingObs', async (data) => {
             try {
                 const { s } = data;
-                const record = this.obsService.startOBS(s);
-                console.log('Salio bien', record);
+                const { ok, message } = await this.obsService.changeRecordName(s.id);
+                if (ok) {
+                    this.obsService.startOBS(s);
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
+        });
+        this.pubSubService.subscribe('changeRecordFileName', async (id) => {
+            try {
+                this.obsService.changeRecordName(id);
             }
             catch (error) {
                 console.log(error);

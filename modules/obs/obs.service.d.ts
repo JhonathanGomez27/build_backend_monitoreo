@@ -20,9 +20,16 @@ export declare class ObsService {
         ok: boolean;
         message: string;
         id: number;
+        error?: undefined;
     } | {
         ok: boolean;
         message: string;
+        id?: undefined;
+        error?: undefined;
+    } | {
+        ok: boolean;
+        message: string;
+        error: any;
         id?: undefined;
     }>;
     getEstadistics(usuarioLogueado: Usuario): Promise<{
@@ -45,4 +52,19 @@ export declare class ObsService {
         message: string;
         id?: undefined;
     }>;
+    changeRecordName(id: number): Promise<{
+        ok: boolean;
+        message: string;
+        id: number;
+    } | {
+        ok: boolean;
+        message: string;
+        id?: undefined;
+    }>;
+    takeScreenshot(): Promise<{
+        base64Image: string;
+        ok: boolean;
+        message: string;
+    }>;
+    executePhpScript(): Promise<string>;
 }

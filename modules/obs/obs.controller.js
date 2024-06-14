@@ -46,11 +46,12 @@ let ObsController = class ObsController {
                     message: 'Bad Request',
                     description: `La sesión "${sesionGrabando.id}" ya se está grabando`,
                 });
-            const { ok, message, id: returnedId, } = await this.obsService.startOBS(sesion, req.user);
+            const { ok, message, id: returnedId, error } = await this.obsService.startOBS(sesion, req.user);
             if (!ok)
                 return res.status(404).json({
                     message,
                     description: `The id value: ${returnedId} does not exist. Please check it and try again`,
+                    error: error
                 });
             return res.json({ ok, message });
         }
@@ -77,6 +78,28 @@ let ObsController = class ObsController {
                         : `The id value: ${returnedId} does not exist. Please check it and try again`,
                 });
             return res.json({ ok, message });
+        }
+        catch (error) {
+            (0, error_message_1.handleDbError)(error);
+        }
+    }
+    async changeRecordName(id, res) {
+        try {
+            const { ok, message } = await this.obsService.changeRecordName(id);
+            if (!ok)
+                return res.status(400).json({ message, ok });
+            return res.json({ message, ok });
+        }
+        catch (error) {
+            (0, error_message_1.handleDbError)(error);
+        }
+    }
+    async stopRecording(res) {
+        try {
+            const { ok, message, base64Image } = await this.obsService.takeScreenshot();
+            if (!ok)
+                return res.status(400).json({ message, ok });
+            return res.json({ message, ok, base64Image });
         }
         catch (error) {
             (0, error_message_1.handleDbError)(error);
@@ -114,6 +137,25 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Object]),
     __metadata("design:returntype", Promise)
 ], ObsController.prototype, "finalizarOBS", null);
+__decorate([
+    (0, decorators_1.Roles)(roles_model_1.Role.OPERARIO_SE, roles_model_1.Role.ADMIN, roles_model_1.Role.MONITOR),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthAccessGuard),
+    (0, common_1.Get)('/change-record-name/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], ObsController.prototype, "changeRecordName", null);
+__decorate([
+    (0, decorators_1.Roles)(roles_model_1.Role.OPERARIO_SE, roles_model_1.Role.ADMIN, roles_model_1.Role.MONITOR),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthAccessGuard),
+    (0, common_1.Get)('/take-screenshot'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ObsController.prototype, "stopRecording", null);
 exports.ObsController = ObsController = __decorate([
     (0, common_1.Controller)('obs'),
     __param(0, (0, typeorm_1.InjectRepository)(sesiones_entity_1.Sesion)),

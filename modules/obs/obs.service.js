@@ -23,6 +23,8 @@ const typeorm_2 = require("typeorm");
 const logs_messages_1 = require("../../utils/logs.messages");
 const sesiones_entity_1 = require("../sesiones/entities/sesiones.entity");
 const fs_1 = require("fs");
+const child_process_1 = require("child_process");
+const path_1 = require("path");
 let ObsService = class ObsService {
     base64ToImage(base64Image, filename) {
         const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
@@ -78,10 +80,10 @@ let ObsService = class ObsService {
             }
         }
         catch (error) {
-            console.error(error);
             return {
                 ok: false,
-                message: 'Error creando la imágen',
+                message: 'Error al conectar con OBS WebSocket',
+                error: error.error
             };
         }
         finally {
@@ -140,24 +142,32 @@ let ObsService = class ObsService {
                 message: 'Sesión no encontrada o la transmisión ya finalizó',
                 id,
             };
+        let valid = false;
         await this.obs
             .connect({
             address: `${this.host}:${this.port}`,
             password: this.password,
         })
             .then(() => {
-            console.log('Conectado a OBS WebSocket');
             return this.obs.send('StopRecording');
         })
             .then(() => {
+            valid = true;
             console.log('Grabación finalizada correctamente.');
         })
             .catch((err) => {
+            valid = false;
             console.error('Error:', err);
         })
             .finally(() => {
             this.obs.disconnect();
         });
+        if (!valid) {
+            return {
+                ok: false,
+                message: 'Error al finalizar la grabación',
+            };
+        }
         const hora_fin = String(new Date()).split(' ');
         await this.sesionesRepo.update(id, {
             estado_transmision: 'Transmisión finalizada',
@@ -173,6 +183,75 @@ let ObsService = class ObsService {
         });
         await this.logsRepo.save(newLog);
         return { ok: true, message: 'Grabación finalizada correctamente.' };
+    }
+    async changeRecordName(id) {
+        const sesion = await this.sesionesRepo.findOne({ where: { id } });
+        if (!sesion) {
+            return {
+                ok: false,
+                message: 'Sesión no encontrada o la transmisión ya finalizó',
+                id,
+            };
+        }
+        const fileName = `SB-${sesion.fecha_inicio_sesion}-${sesion.tema}`;
+        let valid = false;
+        await this.obs.connect({ address: `${this.host}:${this.port}`, password: this.password, })
+            .then(async () => {
+            await this.obs.send('SetFilenameFormatting', { 'filename-formatting': fileName });
+        })
+            .then(() => {
+            valid = true;
+            console.log('Cambio nombre archivo.');
+        })
+            .catch((err) => {
+            console.error('Error:', err);
+        })
+            .finally(() => {
+            this.obs.disconnect();
+        });
+        return {
+            ok: valid,
+            message: valid ? 'Nombre de archivo cambiado correctamente.' : 'Error al cambiar nombre de archivo.',
+        };
+    }
+    async takeScreenshot() {
+        try {
+            await this.obs.connect({
+                address: `${this.host}:${this.port}`,
+                password: this.password,
+            });
+            const response = await this.obs.send('TakeSourceScreenshot', {
+                sourceName: 'youtube_live',
+                embedPictureFormat: 'png',
+                width: 1280,
+                height: 720,
+            });
+            const base64Image = response.img;
+            return { base64Image, ok: true, message: 'Captura de pantalla realizada correctamente.' };
+        }
+        catch (error) {
+            return { ok: false, message: 'Error al tomar captura de pantalla.', base64Image: null };
+        }
+        finally {
+            this.obs.disconnect();
+        }
+    }
+    executePhpScript() {
+        return new Promise((resolve, reject) => {
+            const phpScriptPath = (0, path_1.join)(__dirname, '..', 'dist', 'modules', 'obs', 'script.php');
+            const phpCommand = `php ${phpScriptPath}`;
+            (0, child_process_1.exec)(phpCommand, (error, stdout, stderr) => {
+                if (error) {
+                    reject(`Error al ejecutar el comando: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    reject(`Error en la ejecución del script PHP: ${stderr}`);
+                    return;
+                }
+                resolve(stdout);
+            });
+        });
     }
 };
 exports.ObsService = ObsService;
