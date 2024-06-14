@@ -221,7 +221,7 @@ let ObsService = class ObsService {
                 password: this.password,
             });
             const response = await this.obs.send('TakeSourceScreenshot', {
-                sourceName: 'youtube_live',
+                sourceName: 'boyaca',
                 embedPictureFormat: 'png',
                 width: 1280,
                 height: 720,
