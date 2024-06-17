@@ -26,6 +26,7 @@ const logs_entity_1 = require("./modules/logs/entities/logs.entity");
 const usuario_entity_1 = require("./modules/usuarios/entities/usuario.entity");
 const obs_module_1 = require("./modules/obs/obs.module");
 const obs_service_1 = require("./modules/obs/obs.service");
+const statussesiones_module_1 = require("./modules/statussesiones/statussesiones.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -45,6 +46,7 @@ exports.AppModule = AppModule = __decorate([
             pubsub_module_1.PubsubModule,
             typeorm_1.TypeOrmModule.forFeature([sesiones_entity_1.Sesion, logs_entity_1.Log, usuario_entity_1.Usuario]),
             obs_module_1.ObsModule,
+            statussesiones_module_1.StatussesionesModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, pub_sub_obj_service_1.PubSubObjService, obs_service_1.ObsService],

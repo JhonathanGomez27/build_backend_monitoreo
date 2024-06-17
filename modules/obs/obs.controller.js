@@ -94,12 +94,21 @@ let ObsController = class ObsController {
             (0, error_message_1.handleDbError)(error);
         }
     }
-    async stopRecording(res) {
+    async takeScreenshot(res) {
         try {
             const { ok, message, base64Image } = await this.obsService.takeScreenshot();
             if (!ok)
                 return res.status(400).json({ message, ok });
             return res.json({ message, ok, base64Image });
+        }
+        catch (error) {
+            (0, error_message_1.handleDbError)(error);
+        }
+    }
+    async initPhp(res) {
+        try {
+            const resultado = await this.obsService.executePhpScript();
+            return res.json(resultado);
         }
         catch (error) {
             (0, error_message_1.handleDbError)(error);
@@ -155,7 +164,14 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], ObsController.prototype, "stopRecording", null);
+], ObsController.prototype, "takeScreenshot", null);
+__decorate([
+    (0, common_1.Get)('/run-command'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ObsController.prototype, "initPhp", null);
 exports.ObsController = ObsController = __decorate([
     (0, common_1.Controller)('obs'),
     __param(0, (0, typeorm_1.InjectRepository)(sesiones_entity_1.Sesion)),

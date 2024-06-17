@@ -66,5 +66,5 @@ export declare class ObsService {
         ok: boolean;
         message: string;
     }>;
-    executePhpScript(): Promise<string>;
+    executePhpScript(): Promise<any>;
 }

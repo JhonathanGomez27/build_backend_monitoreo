@@ -236,7 +236,7 @@ let ObsService = class ObsService {
             this.obs.disconnect();
         }
     }
-    executePhpScript() {
+    async executePhpScript() {
         return new Promise((resolve, reject) => {
             const phpScriptPath = (0, path_1.join)(__dirname, '..', 'dist', 'modules', 'obs', 'script.php');
             const phpCommand = `php ${phpScriptPath}`;

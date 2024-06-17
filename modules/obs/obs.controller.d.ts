@@ -20,5 +20,6 @@ export declare class ObsController {
     }>;
     finalizarOBS(req: any, id: number, res: Response): Promise<Response<any, Record<string, any>>>;
     changeRecordName(id: number, res: Response): Promise<Response<any, Record<string, any>>>;
-    stopRecording(res: Response): Promise<Response<any, Record<string, any>>>;
+    takeScreenshot(res: Response): Promise<Response<any, Record<string, any>>>;
+    initPhp(res: Response): Promise<Response<any, Record<string, any>>>;
 }
