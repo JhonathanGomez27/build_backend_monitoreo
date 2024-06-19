@@ -15,12 +15,14 @@ const sesiones_entity_1 = require("../sesiones/entities/sesiones.entity");
 const logs_entity_1 = require("../logs/entities/logs.entity");
 const usuario_entity_1 = require("../usuarios/entities/usuario.entity");
 const iam_module_1 = require("../auth/iam.module");
+const statussesiones_entity_1 = require("../statussesiones/entities/statussesiones.entity");
+const comisiones_entity_1 = require("../comisiones/entities/comisiones.entity");
 let ObsModule = class ObsModule {
 };
 exports.ObsModule = ObsModule;
 exports.ObsModule = ObsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([sesiones_entity_1.Sesion, logs_entity_1.Log, usuario_entity_1.Usuario]), iam_module_1.IamModule],
+        imports: [typeorm_1.TypeOrmModule.forFeature([sesiones_entity_1.Sesion, logs_entity_1.Log, usuario_entity_1.Usuario, statussesiones_entity_1.estatussesion, comisiones_entity_1.Comision]), iam_module_1.IamModule],
         controllers: [obs_controller_1.ObsController],
         providers: [obs_service_1.ObsService],
     })

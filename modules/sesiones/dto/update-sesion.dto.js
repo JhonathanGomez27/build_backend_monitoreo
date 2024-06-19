@@ -34,4 +34,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateSesionDto.prototype, "hora_inicio_sesion", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateSesionDto.prototype, "hora_armado_autmatico_sistema", void 0);
 //# sourceMappingURL=update-sesion.dto.js.map

@@ -97,10 +97,10 @@ let SesionesController = class SesionesController {
             if (sesion.hora_inicio_sesion) {
                 const hora_armado_autmatico_sistema = sesion.hora_inicio_sesion.split(':');
                 if (hora_armado_autmatico_sistema[0] == '1') {
-                    sesion.hora_inicio_sesion = '12:' + hora_armado_autmatico_sistema[1];
+                    sesion.hora_armado_autmatico_sistema = '12:' + hora_armado_autmatico_sistema[1];
                 }
                 else {
-                    sesion.hora_inicio_sesion =
+                    sesion.hora_armado_autmatico_sistema =
                         String(parseInt(hora_armado_autmatico_sistema[0]) - 1) +
                             `:${hora_armado_autmatico_sistema[1]}`;
                 }

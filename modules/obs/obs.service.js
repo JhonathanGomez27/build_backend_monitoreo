@@ -23,18 +23,20 @@ const typeorm_2 = require("typeorm");
 const logs_messages_1 = require("../../utils/logs.messages");
 const sesiones_entity_1 = require("../sesiones/entities/sesiones.entity");
 const fs_1 = require("fs");
-const child_process_1 = require("child_process");
-const path_1 = require("path");
+const statussesiones_entity_1 = require("../statussesiones/entities/statussesiones.entity");
+const comisiones_entity_1 = require("../comisiones/entities/comisiones.entity");
 let ObsService = class ObsService {
     base64ToImage(base64Image, filename) {
         const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
         fs_1.promises.writeFile(__dirname + this.file_path + filename, base64Data, 'base64');
     }
-    constructor(configSerivce, logsRepo, usuariosRepo, sesionesRepo) {
+    constructor(configSerivce, logsRepo, usuariosRepo, sesionesRepo, statusSesionRepo, comisionRepo) {
         this.configSerivce = configSerivce;
         this.logsRepo = logsRepo;
         this.usuariosRepo = usuariosRepo;
         this.sesionesRepo = sesionesRepo;
+        this.statusSesionRepo = statusSesionRepo;
+        this.comisionRepo = comisionRepo;
         this.obs = new OBSWebSocket();
         this.host = this.configSerivce.obs.hostObs;
         this.port = this.configSerivce.obs.portObs;
@@ -73,6 +75,7 @@ let ObsService = class ObsService {
                     sesion,
                 });
                 await this.logsRepo.save(newLog);
+                await this.updateComisionStatus(sesion.id, 'grabando');
                 return {
                     ok: true,
                     message: 'Grabación iniciada correctamente',
@@ -129,37 +132,32 @@ let ObsService = class ObsService {
         const usuario = await this.usuariosRepo.findOne({
             where: { id: usuarioLogueado.id },
         });
-        if (!usuario)
+        if (!usuario) {
             return {
                 ok: false,
                 message: 'Usuario no encontrado',
                 id: usuarioLogueado.id,
             };
+        }
         const sesion = await this.sesionesRepo.findOne({ where: { id } });
-        if (!sesion || sesion.estado_transmision == 'Transmisión finalizada')
+        if (!sesion || sesion.estado_transmision == 'Transmisión finalizada') {
             return {
                 ok: false,
                 message: 'Sesión no encontrada o la transmisión ya finalizó',
                 id,
             };
+        }
         let valid = false;
-        await this.obs
-            .connect({
-            address: `${this.host}:${this.port}`,
-            password: this.password,
-        })
+        await this.obs.connect({ password: this.password, address: `${this.host}:${this.port}`, })
             .then(() => {
             return this.obs.send('StopRecording');
-        })
-            .then(() => {
+        }).then(() => {
             valid = true;
             console.log('Grabación finalizada correctamente.');
-        })
-            .catch((err) => {
+        }).catch((err) => {
             valid = false;
             console.error('Error:', err);
-        })
-            .finally(() => {
+        }).finally(() => {
             this.obs.disconnect();
         });
         if (!valid) {
@@ -168,6 +166,8 @@ let ObsService = class ObsService {
                 message: 'Error al finalizar la grabación',
             };
         }
+        await this.createStatus(sesion);
+        await this.updateComisionStatus(sesion.id, 'No transmitiendo');
         const hora_fin = String(new Date()).split(' ');
         await this.sesionesRepo.update(id, {
             estado_transmision: 'Transmisión finalizada',
@@ -236,22 +236,47 @@ let ObsService = class ObsService {
             this.obs.disconnect();
         }
     }
-    async executePhpScript() {
-        return new Promise((resolve, reject) => {
-            const phpScriptPath = (0, path_1.join)(__dirname, '..', 'dist', 'modules', 'obs', 'script.php');
-            const phpCommand = `php ${phpScriptPath}`;
-            (0, child_process_1.exec)(phpCommand, (error, stdout, stderr) => {
-                if (error) {
-                    reject(`Error al ejecutar el comando: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    reject(`Error en la ejecución del script PHP: ${stderr}`);
-                    return;
-                }
-                resolve(stdout);
-            });
-        });
+    async executePhpScript(id, estado) {
+        const sesion = await this.sesionesRepo.findOne({ where: { id }, relations: ['comision'] });
+        if (!sesion) {
+            return {
+                ok: false,
+                message: 'Sesión no encontrada o la transmisión ya finalizó',
+                id,
+            };
+        }
+        const response = await this.comisionRepo.update(sesion.comision.id, { estado: estado });
+        if (response.affected > 0) {
+            return { ok: true, message: 'Comision actualizada correctamente.' };
+        }
+        return { ok: false, message: 'Error al actualizar comision.' };
+    }
+    async createStatus(sesion) {
+        const name = `SB-${sesion.fecha_inicio_sesion}-${sesion.tema.replace(/ /g, '_')}`;
+        const estado = 'archivo_creado';
+        const status = new statussesiones_entity_1.estatussesion();
+        status.nombre_archivo = name;
+        status.estado = estado;
+        const response = await this.statusSesionRepo.save(status);
+        if (response) {
+            return { ok: true, message: 'Estatus creado correctamente.' };
+        }
+        return { ok: false, message: 'Error al crear estatus.' };
+    }
+    async updateComisionStatus(id, estado) {
+        const sesion = await this.sesionesRepo.findOne({ where: { id }, relations: ['comision'] });
+        if (!sesion) {
+            return {
+                ok: false,
+                message: 'Sesión no encontrada o la transmisión ya finalizó',
+                id,
+            };
+        }
+        const response = await this.comisionRepo.update(sesion.comision.id, { estado: estado });
+        if (response.affected > 0) {
+            return { ok: true, message: 'Comision actualizada correctamente.' };
+        }
+        return { ok: false, message: 'Error al actualizar comision.' };
     }
 };
 exports.ObsService = ObsService;
@@ -261,7 +286,11 @@ exports.ObsService = ObsService = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(logs_entity_1.Log)),
     __param(2, (0, typeorm_1.InjectRepository)(usuario_entity_1.Usuario)),
     __param(3, (0, typeorm_1.InjectRepository)(sesiones_entity_1.Sesion)),
+    __param(4, (0, typeorm_1.InjectRepository)(statussesiones_entity_1.estatussesion)),
+    __param(5, (0, typeorm_1.InjectRepository)(comisiones_entity_1.Comision)),
     __metadata("design:paramtypes", [void 0, typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository])
 ], ObsService);

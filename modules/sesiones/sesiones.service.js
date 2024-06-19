@@ -141,7 +141,7 @@ let SesionesService = class SesionesService {
                 ok: false,
                 message: `Sesión no encontrada`,
             };
-        const data = await this.sesionesRepository.update(id, sesion);
+        const data = await this.sesionesRepository.update({ id }, { ...sesion });
         this.generateLog('editar sesion', usuario, logs_messages_1.logsMessages['editar sesion'], sesionToUpdate);
         return {
             ok: true,

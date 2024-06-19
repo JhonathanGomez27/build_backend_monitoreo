@@ -4,18 +4,22 @@ import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Log } from '../logs/entities/logs.entity';
 import { Repository } from 'typeorm';
 import { Sesion } from '../sesiones/entities/sesiones.entity';
+import { estatussesion } from '../statussesiones/entities/statussesiones.entity';
+import { Comision } from '../comisiones/entities/comisiones.entity';
 export declare class ObsService {
     private readonly configSerivce;
     private logsRepo;
     private usuariosRepo;
     private sesionesRepo;
+    private statusSesionRepo;
+    private comisionRepo;
     private obs;
     private host;
     private port;
     private password;
     private file_path;
     private base64ToImage;
-    constructor(configSerivce: ConfigType<typeof config>, logsRepo: Repository<Log>, usuariosRepo: Repository<Usuario>, sesionesRepo: Repository<Sesion>);
+    constructor(configSerivce: ConfigType<typeof config>, logsRepo: Repository<Log>, usuariosRepo: Repository<Usuario>, sesionesRepo: Repository<Sesion>, statusSesionRepo: Repository<estatussesion>, comisionRepo: Repository<Comision>);
     startOBS(sesion: Sesion, usuarioLogueado?: Usuario): Promise<{
         ok: boolean;
         message: string;
@@ -66,5 +70,26 @@ export declare class ObsService {
         ok: boolean;
         message: string;
     }>;
-    executePhpScript(): Promise<any>;
+    executePhpScript(id: number, estado: string): Promise<{
+        ok: boolean;
+        message: string;
+        id: number;
+    } | {
+        ok: boolean;
+        message: string;
+        id?: undefined;
+    }>;
+    createStatus(sesion: any): Promise<{
+        ok: boolean;
+        message: string;
+    }>;
+    updateComisionStatus(id: number, estado: string): Promise<{
+        ok: boolean;
+        message: string;
+        id: number;
+    } | {
+        ok: boolean;
+        message: string;
+        id?: undefined;
+    }>;
 }

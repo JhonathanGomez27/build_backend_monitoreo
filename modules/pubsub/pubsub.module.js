@@ -14,12 +14,14 @@ const typeorm_1 = require("@nestjs/typeorm");
 const sesiones_entity_1 = require("../sesiones/entities/sesiones.entity");
 const logs_entity_1 = require("../logs/entities/logs.entity");
 const usuario_entity_1 = require("../usuarios/entities/usuario.entity");
+const statussesiones_entity_1 = require("../statussesiones/entities/statussesiones.entity");
+const comisiones_entity_1 = require("../comisiones/entities/comisiones.entity");
 let PubsubModule = class PubsubModule {
 };
 exports.PubsubModule = PubsubModule;
 exports.PubsubModule = PubsubModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([sesiones_entity_1.Sesion, logs_entity_1.Log, usuario_entity_1.Usuario])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([sesiones_entity_1.Sesion, logs_entity_1.Log, usuario_entity_1.Usuario, statussesiones_entity_1.estatussesion, comisiones_entity_1.Comision])],
         providers: [pub_sub_service_1.PubSubService, obs_service_1.ObsService],
         exports: [pub_sub_service_1.PubSubService],
     })
